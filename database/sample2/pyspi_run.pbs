@@ -1,7 +1,7 @@
 #!/bin/bash
 # Set name of job
-#PBS -N xxNameOfJobxx
-#PBS -o xxPathxx/jobOutput.txt
+#PBS -N sample2
+#PBS -o ./database/sample2/jobOutput.txt
 #PBS -j oe
 # Specify a queue:
 #PBS -l select=1:ncpus=2:mem=40GB
@@ -32,7 +32,7 @@ python --version
 hostname
 
 # Change to relevant directory and run our compute script
-cd xxPathxx
+cd ./database/sample2
 python pyspi_compute.py
 
 exit
