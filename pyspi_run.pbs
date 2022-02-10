@@ -1,0 +1,34 @@
+#!/bin/bash
+# Set name of job
+#PBS -N xxNameOfJobxx
+#PBS -o xxPathxx/jobOutput.txt
+#PBS -j oe
+# Specify a queue:
+#PBS -l select=1:ncpus=2:mem=40GB
+# Set your minimum acceptable walltime, format: day-hours:minutes:seconds
+#PBS -l walltime=120:00:00
+# Email user if job ends or aborts
+#PBS -m a
+#PBS -M oliver.cliff@sydney.edu.au
+#PBS -V
+
+date
+
+# ---------------------------------------------------
+module load Anaconda3-5.1.0
+
+source /usr/physics/python/anaconda3/etc/profile.d/conda.csh
+
+conda activate pynats
+
+python --version
+
+cd xxPathxx
+
+# Show the host on which the job ran
+hostname
+
+# Run our simple compute script
+python pynats_compute.py
+
+exit
