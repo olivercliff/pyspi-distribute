@@ -17,14 +17,21 @@ metadata <- args$sample_metadata
 meta_vars <- args$label_vars
 overwrite <- args$overwrite
 
+if (!endsWith(data_dir, '/')) {
+  data_dir <- paste0(data_dir, "/")
+}
+
 npy_files <- list.files(data_dir, pattern="*.npy")
 yaml_file <- paste0(data_dir, "sample.yaml")
+
+cat("\nYAML output:", yaml_file, "\n")
 
 if (!is.null(metadata) & !is.null(meta_vars)) {
   metadata_data <- read.csv(metadata)
 }
 
 if (!file.exists(yaml_file) | overwrite) {
+  cat("\nNow creating sample.yaml\n")
   file.create(yaml_file)
   yaml_string <- "- {file: %s, name: %s, dim_order: sp, labels: [%s] }\n"
   for (npy in npy_files) {
@@ -35,7 +42,7 @@ if (!file.exists(yaml_file) | overwrite) {
         dplyr::select(meta_vars)
       sample_data_vector <- paste(as.vector(sample_data[1,]), collapse=",")
     } else{
-      sample_data_vector <- character()
+      sample_data_vector <- ""
     }
     
     sample_string <- sprintf(yaml_string, 

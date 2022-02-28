@@ -5,7 +5,7 @@ import os
 parser = argparse.ArgumentParser(description="Distribute pyspi jobs across a cluster.")
 parser.add_argument('--data_dir', dest='data_dir',
                     help='Directory where pyspi data is stored.',
-                    default = "./database/"))
+                    default = "./database/")
 parser.add_argument('--compute_file', dest='compute_file',
                     help="File path for python script that actually runs pyspi. Default is pyspi_compute.py in the directory where this script is located.",
                     default = './pyspi_compute.py')
@@ -68,7 +68,7 @@ for dirpath, _, filenames in os.walk(data_dir):
                     for config in yf:
                         file = config['file']
                         dim_order = config['dim_order']
-                        name = config['name']
+                        name = str(config['name'])
                         labels = config['labels']
                         try:
                             data = Data(data=file,dim_order=dim_order,name=name,normalise=True)
@@ -81,7 +81,7 @@ for dirpath, _, filenames in os.walk(data_dir):
                         calc.name = name
                         calc.labels = labels
                         sample_path = data_dir + "/" + name + "/"
-                        
+
                         # Create output directory
                         try:
                             os.mkdir(sample_path)
