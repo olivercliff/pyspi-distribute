@@ -1,6 +1,7 @@
 # Parse command-line arguments
 import argparse
 import os
+from string import Template
 
 parser = argparse.ArgumentParser(description="Distribute pyspi jobs across a cluster.")
 parser.add_argument('--data_dir', dest='data_dir',
@@ -31,6 +32,10 @@ parser.add_argument("--mem", dest="mem",
 parser.add_argument("--overwrite_pkl", dest="overwrite_pkl",
                     help = "OPTIONAL: overwrite all existing .pkl files in data directory? Default is False.",
                     default = False, action="store_true")
+
+with open('template.pbs','r') as f:
+    _pbs_file_template = f.read()
+template = Template(_pbs_file_template)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -79,8 +84,7 @@ for dirpath, _, filenames in os.walk(data_dir):
                         name = str(config['name'])
                         labels = config['labels']
                         try:
-                            data_from_file = np.load(file).transpose()
-                            data = Data(data=data_from_file,dim_order=dim_order,name=name,normalise=True)
+                            data = Data(data=file,dim_order=dim_order,name=name,normalise=True)
                         except ValueError as err:
                             print(f'Issue loading dataset: {err}')
                             continue
@@ -116,35 +120,12 @@ for dirpath, _, filenames in os.walk(data_dir):
                         print("Now writing pbs file")
                         sample_pbs = f"{sample_path}/pyspi_run.pbs"
 
+                        pbs_file_str = template.substitute(name=name,data_dir=data_dir,
+                                                            cpu=cpu,mem=mem,walltime_hrs=walltime_hrs,
+                                                            pbs_notify=pbs_notify,user_email=user_email,
+                                                            pyfile=pyfile,sample_pkl_output=sample_pkl_output)
                         with open(sample_pbs, 'w+') as f:
-                            f.write("#!/bin/bash\n")
-                            f.write(f"#PBS -N {name}\n")
-                            f.write("#PBS -j oe\n")
-                            f.write(f"#PBS -o {data_dir}/{name}/pbsjob.out\n")
-                            f.write(f"#PBS -l select=1:ncpus={cpu}:mem={mem}GB\n")
-                            f.write(f"#PBS -l walltime={walltime_hrs}:00:00\n")
-                            f.write(f"#PBS -m {pbs_notify}\n")
-                            if user_email is not None:
-                                f.write(f"#PBS -M {user_email}\n")
-                            f.write("#PBS -V\n")
-                            f.write("\ncd $PBS_O_WORKDIR\n")
-
-                            f.write("\n# --- CHANGE TO ANY RELEVANT CONDA INIT SCRIPTS\n")
-                            f.write("module load Anaconda3-5.1.0\n")
-                            f.write("source /usr/physics/python/anaconda3/etc/profile.d/conda.sh\n")
-                            f.write("# --- \n")
-
-                            f.write("\nconda activate pyspi\n")
-
-                            f.write("\n# Verify python version\n")
-                            f.write("python --version\n")
-
-                            f.write("\nVerify the host on which the job ran\n")
-                            f.write("hostname\n")
-
-                            f.write("\n# Change to relevant directory and run our compute script\n")
-                            f.write(f"cd {data_dir}\n")
-                            f.write(f"python {pyfile} {sample_pkl_output} > {data_dir}/{name}/pyspi_run.out")
+                            f.write(pbs_file_str)
 
 						# Submit the job
                         os.system(f'qsub {sample_pbs}')
