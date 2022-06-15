@@ -20,6 +20,7 @@ dim_order <- args$dim_order
 metadata <- args$sample_metadata
 meta_vars <- args$label_vars
 overwrite <- args$overwrite
+table_only <- args$table_only
 yaml_file_base <- args$yaml_file
 
 if (!endsWith(data_dir, '/')) {
@@ -51,10 +52,10 @@ if (!file.exists(yaml_file) | overwrite) {
     }
     
     sample_string <- sprintf(yaml_string, 
-                           paste0(data_dir, npy),
-                           sample_ID,
-                           dim_order,
-                           sample_data_vector)
+                             paste0(data_dir, npy),
+                             sample_ID,
+                             dim_order,
+                             sample_data_vector)
     write_file(sample_string, yaml_file, append=T)
   }
 }

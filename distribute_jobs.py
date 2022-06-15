@@ -15,6 +15,9 @@ parser.add_argument("--pyspi_config", dest="pyspi_config",
 parser.add_argument("--sample_yaml", dest="sample_yaml",
                     help = "File path to YAML file containing filepath and metadata about each sample to be processed.",
                     default = "./database/sample.yaml")
+parser.add_argument("--template_pbs_file", dest="template_pbs_file",
+                    help = "File path to template pbs script. Default is template.pbs in current working directory.",
+                    default = "template.pbs")
 parser.add_argument("--pbs_notify", dest="pbs_notify",
                     help = "OPTIONAL: When pbs should email user; a=abort, b=begin, e=end. Default is a only.",
                     default = "")
@@ -32,15 +35,15 @@ parser.add_argument("--mem", dest="mem",
 parser.add_argument("--overwrite_pkl", dest="overwrite_pkl",
                     help = "OPTIONAL: overwrite all existing .pkl files in data directory? Default is False.",
                     default = False, action="store_true")
-
-with open('template.pbs','r') as f:
-    _pbs_file_template = f.read()
-template = Template(_pbs_file_template)
+parser.add_argument("--table_only", dest="table_only",
+                    help = "Only save calc.table to calc.pkl file. Default is False.",
+                    action = "store_true", default = False)
 
 # Parse the arguments
 args = parser.parse_args()
 data_dir = args.data_dir
 sample_yaml = args.sample_yaml
+template_pbs_file = args.template_pbs_file
 user_email = args.user_email
 pbs_notify = args.pbs_notify
 walltime_hrs = args.walltime_hrs
@@ -48,6 +51,12 @@ cpu = args.cpu
 mem = args.mem
 pyfile = os.path.abspath(args.compute_file)
 overwrite_pkl = args.overwrite_pkl
+table_only = args.table_only
+
+# Open template file
+with open(template_pbs_file,'r') as f:
+    _pbs_file_template = f.read()
+template = Template(_pbs_file_template)
 
 # Import the rest of the modules
 from pyspi.calculator import Calculator
@@ -94,7 +103,7 @@ for dirpath, _, filenames in os.walk(data_dir):
                         calc.name = name
                         calc.labels = labels
                         sample_path = data_dir + "/" + name + "/"
-                        
+
                         # Create output directory
                         try:
                             os.mkdir(sample_path)
@@ -123,7 +132,9 @@ for dirpath, _, filenames in os.walk(data_dir):
                         pbs_file_str = template.substitute(name=name,data_dir=data_dir,
                                                             cpu=cpu,mem=mem,walltime_hrs=walltime_hrs,
                                                             pbs_notify=pbs_notify,user_email=user_email,
-                                                            pyfile=pyfile,sample_pkl_output=sample_pkl_output)
+                                                            pyfile=pyfile,
+                                                            table_only=table_only,
+                                                            sample_pkl_output=sample_pkl_output)
                         with open(sample_pbs, 'w+') as f:
                             f.write(pbs_file_str)
 
