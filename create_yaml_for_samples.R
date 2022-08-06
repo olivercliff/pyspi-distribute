@@ -6,6 +6,7 @@ parser <- ArgumentParser(description='Automatically generate sample YAML file fo
 
 parser$add_argument("--data_dir", help="Directory containing samples' .npy files.")
 parser$add_argument("--sample_metadata", help="OPTIONAL: CSV file containing sample metadata info.")
+parser$add_argument("--ID_var", help="OPTIONAL: ID variable in CSV metadata file.")
 parser$add_argument("--label_vars", help="OPTIONAL: columns in metadata to use as labels for YAML.")
 parser$add_argument("--dim_order", help="OPTIONAL: orientation of observations and time points in data. Default is ps, meaning time points are rows and samples are columns.", default="ps")
 parser$add_argument("--overwrite", help="Should sample.yaml be overwritten if it already exists? Default is F.",
@@ -16,6 +17,7 @@ parser$add_argument("--yaml_file", help="OPTIONAL: Name of output sample YAML fi
 # Parse arguments
 args <- parser$parse_args()
 data_dir <- args$data_dir
+ID_var <- args$ID_var
 dim_order <- args$dim_order
 sample_metadata <- args$sample_metadata
 label_vars <- args$label_vars
