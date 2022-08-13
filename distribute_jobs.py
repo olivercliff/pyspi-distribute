@@ -140,6 +140,6 @@ for dirpath, _, filenames in os.walk(data_dir):
 
 						# Submit the job
                         print(f"Now submitting {sample_pbs}")
-                        os.system(f'qsub {sample_pbs}')
+                        os.system(f"qsub {sample_pbs}")
                 except (yaml.scanner.ScannerError,TypeError) as err:
                     print(f'YAML-file {doc} failed: {err}')
