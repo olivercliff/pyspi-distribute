@@ -1,5 +1,6 @@
 #!/bin/bash
 #PBS -N ${name}
+#PBS -q yossarian
 #PBS -j oe
 #PBS -o ${data_dir}/${name}/pbsjob.out
 #PBS -l select=1:ncpus=${cpu}:mem=${mem}GB
@@ -25,4 +26,4 @@ hostname
 
 # Change to relevant directory and run our compute script
 cd $data_dir
-python ${pyfile} ${sample_pkl_output} > ${data_dir}/${name}/pyspi_run.out
+python ${pyfile} ${sample_pkl_output} ${table_only} > ${data_dir}/${name}/pyspi_run.out
