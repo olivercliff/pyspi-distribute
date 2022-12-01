@@ -7,6 +7,9 @@ parser = argparse.ArgumentParser(description="Distribute pyspi jobs across a clu
 parser.add_argument('--data_dir', dest='data_dir',
                     help='Directory where pyspi data is stored.',
                     default = "./database/")
+parser.add_argument('--calc_file_name', dest='calc_file_name',
+                    help='OPTIONAL: output file name for results. Default is calc.pkl.',
+                    default = "calc.pkl")                    
 parser.add_argument('--compute_file', dest='compute_file',
                     help="File path for python script that actually runs pyspi. Default is pyspi_compute.py in the directory where this script is located.",
                     default = './pyspi_compute.py')
@@ -38,10 +41,14 @@ parser.add_argument("--overwrite_pkl", dest="overwrite_pkl",
 parser.add_argument("--table_only", dest="table_only",
                     help = "Only save calc.table to calc.pkl file. Default is False.",
                     action = "store_true", default = False)
+parser.add_argument("--seed_num", dest="seed_num",
+                    help = "OPTIONAL: random seed to use. Default is 127.",
+                    default = 127)
 
 # Parse the arguments
 args = parser.parse_args()
 data_dir = args.data_dir
+calc_file_name = args.calc_file_name
 sample_yaml = args.sample_yaml
 template_pbs_file = args.template_pbs_file
 user_email = args.user_email
@@ -52,6 +59,7 @@ mem = args.mem
 pyfile = os.path.abspath(args.compute_file)
 overwrite_pkl = args.overwrite_pkl
 table_only = args.table_only
+seed_num = args.seed_num
 
 # Open template file
 with open(template_pbs_file,'r') as f:
@@ -65,7 +73,10 @@ import numpy as np
 import yaml
 import dill
 from copy import deepcopy
+import random
 
+# Set the seed
+random.seed(seed_num)
 
 # Instantiate Calculator
 # Use user-generated config file if supplied to subset SPIs
@@ -113,7 +124,7 @@ for dirpath, _, filenames in os.walk(data_dir):
                             print(f'Successfully created the directory {sample_path}')
 
                         # Create .pkl file in the current sample's folder within the data directory
-                        sample_pkl_output = f"{sample_path}/calc.pkl"
+                        sample_pkl_output = f"{sample_path}/{calc_file_name}"
 
                         # If the output .pkl file already exists, ask user if they want to overwrite.
                         if os.path.exists(sample_pkl_output) and not overwrite_pkl:
@@ -134,7 +145,8 @@ for dirpath, _, filenames in os.walk(data_dir):
                                                             pbs_notify=pbs_notify,user_email=user_email,
                                                             pyfile=pyfile,
                                                             table_only=table_only,
-                                                            sample_pkl_output=sample_pkl_output)
+                                                            sample_pkl_output=sample_pkl_output,
+                                                            seed_num=seed_num)
                         with open(sample_pbs, 'w+') as f:
                             f.write(pbs_file_str)
 
