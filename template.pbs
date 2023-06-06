@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -N ${name}
-#PBS -q yossarian
+#PBS -q ${queue}
 #PBS -j oe
 #PBS -o ${data_dir}/${name}/pbsjob.out
-#PBS -l select=1:ncpus=${cpu}:mem=${mem}GB
+#PBS -l select=1:ncpus=${cpu}:mem=${mem}GB:mpiprocs=${cpu}
 #PBS -l walltime=${walltime_hrs}:00:00
 #PBS -m ${pbs_notify}
 #PBS -M ${user_email}
@@ -16,7 +16,7 @@ module load Anaconda3-5.1.0
 source /usr/physics/python/anaconda3/etc/profile.d/conda.sh
 ###
 
-conda activate pyspi
+conda activate ${conda_env}
 
 # Verify python version
 python --version
@@ -26,4 +26,4 @@ hostname
 
 # Change to relevant directory and run our compute script
 cd $data_dir
-python ${pyfile} ${sample_pkl_output} ${table_only} ${seed_num} > ${data_dir}/${name}/pyspi_run.out
+python ${pyfile} ${sample_pkl_output} ${table_only} > ${data_dir}/${name}/pyspi_run.out

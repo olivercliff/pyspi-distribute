@@ -26,6 +26,7 @@ parser.add_argument("--pbs_notify", dest="pbs_notify",
                     default = "")
 parser.add_argument("--email", dest="user_email",
                     help = "OPTIONAL: Email address for pbs job status.")
+parser.add_argument("--queue", dest="queue", help="Queue to submit jobs to. Default is defaultQ.", default = "defaultQ")
 parser.add_argument("--walltime_hrs", dest="walltime_hrs",
                     help = "OPTIONAL: Maximum walltime allowed for job. Default is 24 hours.",
                     default = "24")
@@ -35,15 +36,15 @@ parser.add_argument("--cpu", dest="cpu",
 parser.add_argument("--mem", dest="mem",
                     help = "OPTIONAL: Memory to request per job (in GB). Default is 8.",
                     default = "8")
+parser.add_argument("--conda_env", dest="conda_env",
+                    help = "Name of conda environment.",
+                    default = "pyspi")
 parser.add_argument("--overwrite_pkl", dest="overwrite_pkl",
                     help = "OPTIONAL: overwrite all existing .pkl files in data directory? Default is False.",
                     default = False, action="store_true")
 parser.add_argument("--table_only", dest="table_only",
                     help = "Only save calc.table to calc.pkl file. Default is False.",
                     action = "store_true", default = False)
-parser.add_argument("--seed_num", dest="seed_num",
-                    help = "OPTIONAL: random seed to use. Default is 127.",
-                    default = 127)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -53,13 +54,14 @@ sample_yaml = args.sample_yaml
 template_pbs_file = args.template_pbs_file
 user_email = args.user_email
 pbs_notify = args.pbs_notify
+queue = args.queue
 walltime_hrs = args.walltime_hrs
 cpu = args.cpu
 mem = args.mem
-pyfile = os.path.abspath(args.compute_file)
+conda_env = args.conda_env
 overwrite_pkl = args.overwrite_pkl
 table_only = args.table_only
-seed_num = args.seed_num
+pyfile = os.path.abspath(args.compute_file)
 
 # Open template file
 with open(template_pbs_file,'r') as f:
@@ -73,10 +75,6 @@ import numpy as np
 import yaml
 import dill
 from copy import deepcopy
-import random
-
-# Set the seed
-random.seed(seed_num)
 
 # Instantiate Calculator
 # Use user-generated config file if supplied to subset SPIs
@@ -109,20 +107,15 @@ for dirpath, _, filenames in os.walk(data_dir):
                             print(f'Issue loading dataset: {err}')
                             continue
 
-                        calc = deepcopy(basecalc)
-                        calc.load_dataset(data)
-                        calc.name = name
-                        calc.labels = labels
-                        sample_path = data_dir + "/" + name + "/"
-
                         # Create output directory
+                        sample_path = data_dir + "/" + name
                         try:
                             os.mkdir(sample_path)
                         except OSError as err:
                             print(f'Creation of the directory {sample_path} failed: {err}')
                         else:
                             print(f'Successfully created the directory {sample_path}')
-
+                        
                         # Create .pkl file in the current sample's folder within the data directory
                         sample_pkl_output = f"{sample_path}/{calc_file_name}"
 
@@ -130,6 +123,13 @@ for dirpath, _, filenames in os.walk(data_dir):
                         if os.path.exists(sample_pkl_output) and not overwrite_pkl:
                             print(f'File {sample_pkl_output} already exists. Delete/move if you would like to recompute.')
                             continue
+
+                        print("Now making deepcopy of basecalc")
+                        calc = deepcopy(basecalc)
+                        calc.load_dataset(data)
+                        calc.name = name
+                        calc.labels = labels
+                        sample_path = data_dir + "/" + name + "/"
 
                         # Save calculator in directory
                         print(f'Saving object to dill database: "{sample_pkl_output}"')
@@ -140,13 +140,13 @@ for dirpath, _, filenames in os.walk(data_dir):
                         print("Now writing pbs file")
                         sample_pbs = f"{sample_path}/pyspi_run.pbs"
 
-                        pbs_file_str = template.substitute(name=name,data_dir=data_dir,
+                        pbs_file_str = template.substitute(name=name,data_dir=data_dir,queue=queue,
                                                             cpu=cpu,mem=mem,walltime_hrs=walltime_hrs,
                                                             pbs_notify=pbs_notify,user_email=user_email,
                                                             pyfile=pyfile,
                                                             table_only=table_only,
                                                             sample_pkl_output=sample_pkl_output,
-                                                            seed_num=seed_num)
+                                                            conda_env=conda_env)
                         with open(sample_pbs, 'w+') as f:
                             f.write(pbs_file_str)
 

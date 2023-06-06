@@ -1,12 +1,15 @@
 library(tidyverse)
 library(argparse)
 library(tools)
+library(feather)
+library(glue)
 
 parser <- ArgumentParser(description='Automatically generate sample YAML file for pyspi-distribute.')
 
 parser$add_argument("--data_dir", help="Directory containing samples' .npy files.")
-parser$add_argument("--sample_metadata_file", help="OPTIONAL: .Rds file containing sample metadata info.")
+parser$add_argument("--sample_metadata_file", help="OPTIONAL: .Rds or .feather file containing sample metadata info.")
 parser$add_argument("--ID_var", help="OPTIONAL: ID variable in CSV metadata file.")
+parser$add_argument("--numpy_file_base", help="OPTIONAL: extension for input numpy files.")
 parser$add_argument("--label_vars", help="OPTIONAL: columns in metadata to use as labels for YAML.", nargs="?")
 parser$add_argument("--dim_order", help="OPTIONAL: orientation of observations and time points in data. Default is ps, meaning time points are rows and samples are columns.", default="ps")
 parser$add_argument("--overwrite", help="Should sample.yaml be overwritten if it already exists? Default is F.",
@@ -18,12 +21,20 @@ parser$add_argument("--yaml_file", help="OPTIONAL: Name of output sample YAML fi
 args <- parser$parse_args()
 data_dir <- args$data_dir
 ID_var <- args$ID_var
+numpy_file_base <- args$numpy_file_base
 dim_order <- args$dim_order
 sample_metadata_file <- args$sample_metadata_file
 label_vars <- args$label_vars
 overwrite <- args$overwrite
-table_only <- args$table_only
 yaml_file_base <- args$yaml_file
+
+# data_dir <- "~/data/AD_FTD_EEG/processed_EEG_data/numpy_files/"
+# ID_var <- "Sample_ID"
+# dim_order <- "ps"
+# sample_metadata_file <- "~/data/AD_FTD_EEG/metadata.feather"
+# label_vars <- "Diagnosis"
+# overwrite <- TRUE
+# yaml_file_base <- "sample.yaml"
 
 if (!endsWith(data_dir, '/')) {
   data_dir <- paste0(data_dir, "/")
@@ -34,15 +45,21 @@ yaml_file <- paste0(data_dir, yaml_file_base)
 
 cat("\nYAML output:", yaml_file, "\n")
 
+if (is.null(numpy_file_base)) {
+  numpy_file_base <- ".npy"
+}
+
 if (!is.null(sample_metadata_file)) {
-  sample_metadata <- readRDS(sample_metadata_file)
+  if (endsWith(sample_metadata_file, '.Rds')) {
+    sample_metadata <- readRDS(sample_metadata_file)
+  } else {
+    sample_metadata <- feather::read_feather(sample_metadata_file)
+  }
 }
 
 if (!is.null(label_vars)) {
   sample_metadata <- sample_metadata %>%
-    dplyr::rename("ID_var" = ID_var)  %>%
-    dplyr::mutate(ID_var = ifelse(startsWith(ID_var, "_"), 
-                                  gsub("_","", ID_var), ID_var))
+    dplyr::rename("ID_var" = glue("{ID_var}")) 
 }
 
 if (!file.exists(yaml_file) | overwrite) {
@@ -50,11 +67,11 @@ if (!file.exists(yaml_file) | overwrite) {
   file.create(yaml_file)
   yaml_string <- "- {file: %s, name: %s, dim_order: %s, labels: [%s] }\n"
   for (npy in npy_files) {
-    sample_ID <- tools::file_path_sans_ext(npy)
-    if (!is.null(sample_metadata) & !is.null(label_vars)) {
+    sample_ID <- gsub(numpy_file_base, "", npy)
+    if (!is.null(sample_metadata_file) & !is.null(label_vars)) {
       sample_data <- sample_metadata %>%
         dplyr::filter(ID_var == sample_ID) %>%
-        dplyr::select(label_vars)
+        dplyr::select(all_of(label_vars))
       sample_data_vector <- paste(as.vector(sample_data[1,]), collapse=",")
     } else{
       sample_data_vector <- ""
