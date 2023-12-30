@@ -90,7 +90,7 @@ print(f"Now walking through data directory: {data_dir}")
 for dirpath, _, filenames in os.walk(data_dir):
     for filename in filenames:
         # Look for the user-specified sample YAML file
-        if os.path.join(dirpath,filename) == sample_yaml:
+        if filename == sample_yaml:
             doc = os.path.join(dirpath,filename)
             print(f"Sample YAML found. Loading {doc}")
             with open(doc) as d:
