@@ -79,9 +79,12 @@ from copy import deepcopy
 # Instantiate Calculator
 # Use user-generated config file if supplied to subset SPIs
 if args.pyspi_config is not None:
-    pyspi_config_file = os.path.abspath(args.pyspi_config)
-    print(f"Custom config file: {pyspi_config_file}")
-    basecalc = Calculator(configfile=pyspi_config_file)
+    if args.pyspi_config in ["fast", "sonnet", "fabfour"]:
+        basecalc = Calculator(subset=args.pyspi_config)
+    else:
+        pyspi_config_file = os.path.abspath(args.pyspi_config)
+        print(f"Custom config file: {pyspi_config_file}")
+        basecalc = Calculator(configfile=pyspi_config_file)
 else:
 	basecalc = Calculator()
 
