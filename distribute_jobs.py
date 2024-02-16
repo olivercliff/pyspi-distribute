@@ -5,40 +5,40 @@ from string import Template
 
 parser = argparse.ArgumentParser(description="Distribute pyspi jobs across a cluster.")
 parser.add_argument('--data_dir', dest='data_dir',
-                    help='Directory where pyspi data is stored.',
-                    default = "./database/")
+                    help='Directory where pyspi data is stored.')
 parser.add_argument('--calc_file_name', dest='calc_file_name',
                     help='OPTIONAL: output file name for results. Default is calc.pkl.',
                     default = "calc.pkl")                    
 parser.add_argument('--compute_file', dest='compute_file',
-                    help="File path for python script that actually runs pyspi. Default is pyspi_compute.py in the directory where this script is located.",
+                    help="OPTIONAL: File path for python script that actually runs pyspi. Default is pyspi_compute.py in the directory where this script is located.",
                     default = './pyspi_compute.py')
 parser.add_argument("--pyspi_config", dest="pyspi_config",
                     help = "OPTIONAL: File path to user-generated config file for pyspi.")
 parser.add_argument("--sample_yaml", dest="sample_yaml",
-                    help = "File path to YAML file containing filepath and metadata about each sample to be processed.",
-                    default = "./database/sample.yaml")
+                    help = "Name of YAML file containing filepath and metadata about each sample to be processed.",
+                    default = "sample.yaml")
 parser.add_argument("--template_pbs_file", dest="template_pbs_file",
                     help = "File path to template pbs script. Default is template.pbs in current working directory.",
                     default = "template.pbs")
 parser.add_argument("--pbs_notify", dest="pbs_notify",
                     help = "OPTIONAL: When pbs should email user; a=abort, b=begin, e=end. Default is a only.",
-                    default = "")
+                    default = "a")
 parser.add_argument("--email", dest="user_email",
                     help = "OPTIONAL: Email address for pbs job status.")
-parser.add_argument("--queue", dest="queue", help="Queue to submit jobs to. Default is defaultQ.", default = "defaultQ")
+parser.add_argument("--queue", dest="queue", help="Queue to submit jobs to. Default is defaultQ.", 
+                    default = "defaultQ")
 parser.add_argument("--walltime_hrs", dest="walltime_hrs",
-                    help = "OPTIONAL: Maximum walltime allowed for job. Default is 24 hours.",
-                    default = "24")
+                    help = "OPTIONAL: Maximum walltime allowed for job. Default is 6 hours.",
+                    default = "6")
 parser.add_argument("--cpu", dest="cpu",
                     help = "OPTIONAL: Number of CPUs to request for each job. Default is 2.",
                     default = "2")
 parser.add_argument("--mem", dest="mem",
-                    help = "OPTIONAL: Memory to request per job (in GB). Default is 8.",
-                    default = "8")
+                    help = "OPTIONAL: Memory to request per job (in GB). Default is 20.",
+                    default = "20")
 parser.add_argument("--conda_env", dest="conda_env",
-                    help = "Name of conda environment.",
-                    default = "pyspi")
+                    help = "OPTIONAL: Name of conda environment. Default is base.",
+                    default = "base")
 parser.add_argument("--overwrite_pkl", dest="overwrite_pkl",
                     help = "OPTIONAL: overwrite all existing .pkl files in data directory? Default is False.",
                     default = False, action="store_true")

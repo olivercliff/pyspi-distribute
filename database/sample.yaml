@@ -1,2 +1,0 @@
-- {file: ./database/sample1.npy, name: sample1, dim_order: sp, labels: [synthetic,noise] }
-- {file: ./database/sample2.npy, name: sample2, dim_order: sp, labels: [synthetic,noise] }

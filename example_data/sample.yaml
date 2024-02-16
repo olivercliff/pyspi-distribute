@@ -1,0 +1,3 @@
+{file: example_data/Dataset_0.npy, name: Dataset_0, dim_order: ps, labels: [Dataset_0]}
+{file: example_data/Dataset_1.npy, name: Dataset_1, dim_order: ps, labels: [Dataset_1]}
+{file: example_data/Dataset_2.npy, name: Dataset_2, dim_order: ps, labels: [Dataset_2]}
